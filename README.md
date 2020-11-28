@@ -9,7 +9,7 @@ Laravel 8 test app providing currency rates.
 
 ![Example](https://i.imgur.com/ZqMkfeD.png)
 
-##Used packages
+## Used packages
 
 Laravel Passport, DomCrawler, Guzzle
 
@@ -32,7 +32,7 @@ Laravel Passport, DomCrawler, Guzzle
 2. Import currencies: php artisan currencies:import
 3. Login url: /login
 
-##API
+## API
 
 Based on https://jsonapi.org. 
 
