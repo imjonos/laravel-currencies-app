@@ -28,14 +28,28 @@ class CurrencyController extends Controller
     {
         $pageSize = $request->input('page.size', $this->perPage);
         $pageNumber = $request->input('page.number', 1);
+        $baseId = $request->input('filter.base_currency_id', 0);
         $id = $request->input('filter.id', 0);
         $dateFrom = $request->input('filter.date_from', '');
         $dateTo = $request->input('filter.date_to', '');
-        $currencies = Currency::select(DB::raw('*, avg(value) as avg_value, max(value) as max_value, min(value) as min_value'))
-            ->groupBy(DB::raw('Date(created_at)'))
-            ->groupBy('num_code');
+        $dateBase = $request->input('filter.date', '');
+
+        $select = '*, avg(value) as avg_value, max(value) as max_value, min(value) as min_value';
+        $currencies = Currency::groupBy(DB::raw('Date(created_at)'))->groupBy('num_code');
         if($id) {
             $currencies = $currencies->ofNumCode($id);
+        }
+        if($baseId) {
+
+            $baseCurrency = Currency::ofNumCode($baseId)->orderBy('id', 'desc');
+            if($dateBase) {
+                $date =  new Carbon($dateBase);
+                $baseCurrency = $baseCurrency->whereDate('created_at', $date->format('Y-m-d'));
+            }
+            $baseCurrencyObj = $baseCurrency->first();
+            if($baseCurrencyObj) {
+                $select = $select . ', (' . $baseCurrencyObj->value . '/value) AS value_by_base';
+            }
         }
         if($dateFrom) {
             $date =  new Carbon($dateFrom);
@@ -45,6 +59,7 @@ class CurrencyController extends Controller
             $date =  new Carbon($dateTo);
             $currencies = $currencies->ofDateTo($date->format('Y-m-d'));
         }
+        $currencies = $currencies->select(DB::raw($select));
 
         return new CurrenciesResource($currencies->paginate($pageSize, '*', 'page', $pageNumber));
     }
@@ -73,12 +88,14 @@ class CurrencyController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param Currency $currency
+     * @param int $currency
      * @return CurrencyResource
      */
-    public function show(Currency $currency)
+    public function show($currency)
     {
-        return new CurrencyResource($currency);
+        //Get actual rate
+        $currencyObject =  Currency::orderBy('id','desc')->where('num_code', $currency)->first();
+        return new CurrencyResource($currencyObject);
     }
 
     /**

@@ -26,7 +26,9 @@ class IndexRequest extends FormRequest
         return [
             'filter' => 'array',
             'filter.id' => 'numeric',
+            'filter.base_currency' => 'numeric',
             'filter.date_from' => 'date',
+            'filter.date' => 'date',
             'filter.date_to' => 'date',
             'page' => 'array',
             'page.number' => 'numeric',

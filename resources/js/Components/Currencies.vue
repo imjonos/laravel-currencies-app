@@ -14,7 +14,7 @@
                 <div>
                     <label>ID</label>
                     <input v-model="filter.id" class='form-input rounded-md shadow-sm mt-1 mb-3 block'
-                           type="text"></input>
+                           type="number"></input>
                 </div>
                 <div>
                     <label class="">Date From</label>
@@ -26,8 +26,15 @@
                     <input v-model="filter.date_to" class='form-input rounded-md shadow-sm mt-1 mb-3 block'
                            type="date"></input>
                 </div>
+
                 <div>
-                    <button @click="getData()" class='bg-green-100 form-input rounded-md shadow-sm mt-7 '>Search
+                    <label class="">Base Currency Date</label>
+                    <input v-model="filter.date" class='form-input rounded-md shadow-sm mt-1 mb-3 block'
+                           type="date"></input>
+                </div>
+
+                <div>
+                    <button @click="onClickSearch" class='bg-green-100 form-input rounded-md shadow-sm mt-7 '>Search
                     </button>
                 </div>
                 <div>
@@ -37,8 +44,23 @@
             </div>
 
         </div>
-        <div v-if="isIdSet" class="rounded bg-gray-100 border shadow-inner p-4">
-            <chart :chartdata="chartData" :options="chartOptions"/>
+        <div class="rounded bg-gray-100 border shadow-inner p-4">
+            <div class="grid grid-flow-col md:grid-rows-1 grid-rows-4">
+                <div>
+                    <label>Base Currency ID</label>
+                    <input v-model="filter.base_currency_id" class='form-input rounded-md shadow-sm mt-1 mb-3 block'
+                           type="number"></input>
+                </div>
+                <div>
+                    <button @click="getData()" class='bg-green-100 form-input rounded-md shadow-sm mt-7 '>Search
+                    </button>
+                </div>
+                <div>
+                    <button @click="onClickBaseIdClear" class='bg-red-100 form-input rounded-md shadow-sm mt-7 '>Clear
+                    </button>
+                </div>
+            </div>
+            <chart  v-if="isBaseCurrencyData" :chartdata="chartData" :options="chartOptions"/>
         </div>
         <div class="rounded bg-gray-100 border shadow-inner p-4">
             <table class="shadow min-w-full divide-y divide-gray-200">
@@ -168,8 +190,11 @@ export default {
         filter: {
             id: null,
             date_from: null,
-            date_to: null
+            date_to: null,
+            date: null,
+            base_currency_id: null
         },
+        baseCurrencyData: [],
         pageCount: 2,
         isNext: false,
         isPrev: false,
@@ -195,8 +220,11 @@ export default {
         this.getData();
     },
     computed: {
-        isIdSet() {
-            return !!this.filter.id
+        isBaseIdSet() {
+            return !!this.filter.base_currency_id
+        },
+        isBaseCurrencyData(){
+            return !_.isEmpty(this.baseCurrencyData);
         }
     },
     methods: {
@@ -207,19 +235,40 @@ export default {
                 this.localData = response.data.data;
                 this.meta = response.data.meta;
                 this.setPagination();
-                if (this.isIdSet) {
-                    this.setChartData();
+                if (this.isBaseIdSet && (_.isEmpty(this.baseCurrencyData)
+                    || (!_.isEmpty(this.baseCurrencyData[0].attributes) && this.baseCurrencyData.[0].attributes.num_code!==Number(this.filter.base_currency_id)))) {
+                    this.getBaseCurrencyData();
                 }
             }).catch(error => {
                 console.log(error)
             });
         },
+        getBaseCurrencyData() {
+            this.baseCurrencyData = [];
+            //Last 30 days
+            axios.get('/api/v1/currencies/?page[size]=30&page[number]=1&filter[id]=' + this.filter.base_currency_id).then(response => {
+                this.baseCurrencyData = response.data.data;
+                this.setChartData();
+            }).catch(error => {
+                console.log(error)
+            });
+        },
         onClearClick() {
-            this.filter = {
-                id: null,
-                date_from: null,
-                date_to: null
-            };
+            this.page.number = 1;
+            this.filter.id = null;
+            this.filter.date_from = null;
+            this.filter.date_to = null;
+            this.filter.date = null;
+
+            this.getData();
+        },
+        onClickSearch(){
+            this.page.number = 1;
+            this.getData();
+        },
+        onClickBaseIdClear(){
+            this.filter.base_currency_id = null;
+            this.baseCurrencyData = [];
             this.getData();
         },
         onRowClick(id) {
@@ -234,6 +283,7 @@ export default {
         },
         onClickPage(pageNumber) {
             this.page.number = pageNumber;
+            return false;
         },
         getQueryString() {
             let result = '';
@@ -250,15 +300,14 @@ export default {
         },
         setChartData() {
             let labels = [], data = [], min = 0, max = 0, avg = 0, name = '';
-
-            _.forEach(this.localData, item => {
+            _.forEach(this.baseCurrencyData, item => {
                 labels.push(item.attributes.created_at);
                 min = item.attributes.min_value;
                 max = item.attributes.max_value;
                 avg = item.attributes.avg_value;
                 name = item.attributes.name;
                 data.push(item.attributes.value);
-            })
+            });
 
             this.chartData = {
                 labels: labels,

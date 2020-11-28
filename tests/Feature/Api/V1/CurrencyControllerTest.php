@@ -57,13 +57,13 @@ class CurrencyControllerTest extends TestCase
     public function testShow()
     {
         $currency = Currency::first();
-        $response = $this->ajaxWithOAuth('get', route('currencies.show', ['currency' => $currency->id]));
+        $response = $this->ajaxWithOAuth('get', route('currencies.show', ['currency' => $currency->num_code]));
         $response->assertStatus(200);
         $response->assertJson([
                 'data' => [
                     'type' => 'currencies',
-                    'id' => (string)$currency->id,
                     'attributes' => [
+                        'num_code' => (string)$currency->num_code,
                         'name' => $currency->name
                     ]
                 ]

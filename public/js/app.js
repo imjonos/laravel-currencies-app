@@ -2128,6 +2128,28 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
@@ -2146,8 +2168,11 @@ __webpack_require__.r(__webpack_exports__);
       filter: {
         id: null,
         date_from: null,
-        date_to: null
+        date_to: null,
+        date: null,
+        base_currency_id: null
       },
+      baseCurrencyData: [],
       pageCount: 2,
       isNext: false,
       isPrev: false,
@@ -2171,8 +2196,11 @@ __webpack_require__.r(__webpack_exports__);
     this.getData();
   },
   computed: {
-    isIdSet: function isIdSet() {
-      return !!this.filter.id;
+    isBaseIdSet: function isBaseIdSet() {
+      return !!this.filter.base_currency_id;
+    },
+    isBaseCurrencyData: function isBaseCurrencyData() {
+      return !_.isEmpty(this.baseCurrencyData);
     }
   },
   methods: {
@@ -2187,19 +2215,41 @@ __webpack_require__.r(__webpack_exports__);
 
         _this.setPagination();
 
-        if (_this.isIdSet) {
-          _this.setChartData();
+        if (_this.isBaseIdSet && (_.isEmpty(_this.baseCurrencyData) || !_.isEmpty(_this.baseCurrencyData[0].attributes) && _this.baseCurrencyData[0].attributes.num_code !== Number(_this.filter.base_currency_id))) {
+          _this.getBaseCurrencyData();
         }
       })["catch"](function (error) {
         console.log(error);
       });
     },
+    getBaseCurrencyData: function getBaseCurrencyData() {
+      var _this2 = this;
+
+      this.baseCurrencyData = []; //Last 30 days
+
+      axios.get('/api/v1/currencies/?page[size]=30&page[number]=1&filter[id]=' + this.filter.base_currency_id).then(function (response) {
+        _this2.baseCurrencyData = response.data.data;
+
+        _this2.setChartData();
+      })["catch"](function (error) {
+        console.log(error);
+      });
+    },
     onClearClick: function onClearClick() {
-      this.filter = {
-        id: null,
-        date_from: null,
-        date_to: null
-      };
+      this.page.number = 1;
+      this.filter.id = null;
+      this.filter.date_from = null;
+      this.filter.date_to = null;
+      this.filter.date = null;
+      this.getData();
+    },
+    onClickSearch: function onClickSearch() {
+      this.page.number = 1;
+      this.getData();
+    },
+    onClickBaseIdClear: function onClickBaseIdClear() {
+      this.filter.base_currency_id = null;
+      this.baseCurrencyData = [];
       this.getData();
     },
     onRowClick: function onRowClick(id) {
@@ -2214,6 +2264,7 @@ __webpack_require__.r(__webpack_exports__);
     },
     onClickPage: function onClickPage(pageNumber) {
       this.page.number = pageNumber;
+      return false;
     },
     getQueryString: function getQueryString() {
       var result = '';
@@ -2237,7 +2288,7 @@ __webpack_require__.r(__webpack_exports__);
           avg = 0,
           name = '';
 
-      _.forEach(this.localData, function (item) {
+      _.forEach(this.baseCurrencyData, function (item) {
         labels.push(item.attributes.created_at);
         min = item.attributes.min_value;
         max = item.attributes.max_value;
@@ -2254,7 +2305,6 @@ __webpack_require__.r(__webpack_exports__);
           data: data
         }]
       };
-      console.log(this.chartData);
     },
     setPagination: function setPagination() {
       var start = this.meta.current_page - this.pageCount,
@@ -61345,7 +61395,7 @@ var render = function() {
                 }
               ],
               staticClass: "form-input rounded-md shadow-sm mt-1 mb-3 block",
-              attrs: { type: "text" },
+              attrs: { type: "number" },
               domProps: { value: _vm.filter.id },
               on: {
                 input: function($event) {
@@ -61411,16 +61461,38 @@ var render = function() {
           ]),
           _vm._v(" "),
           _c("div", [
+            _c("label", {}, [_vm._v("Base Currency Date")]),
+            _vm._v(" "),
+            _c("input", {
+              directives: [
+                {
+                  name: "model",
+                  rawName: "v-model",
+                  value: _vm.filter.date,
+                  expression: "filter.date"
+                }
+              ],
+              staticClass: "form-input rounded-md shadow-sm mt-1 mb-3 block",
+              attrs: { type: "date" },
+              domProps: { value: _vm.filter.date },
+              on: {
+                input: function($event) {
+                  if ($event.target.composing) {
+                    return
+                  }
+                  _vm.$set(_vm.filter, "date", $event.target.value)
+                }
+              }
+            })
+          ]),
+          _vm._v(" "),
+          _c("div", [
             _c(
               "button",
               {
                 staticClass:
                   "bg-green-100 form-input rounded-md shadow-sm mt-7 ",
-                on: {
-                  click: function($event) {
-                    return _vm.getData()
-                  }
-                }
+                on: { click: _vm.onClickSearch }
               },
               [_vm._v("Search\n                ")]
             )
@@ -61440,18 +61512,82 @@ var render = function() {
       )
     ]),
     _vm._v(" "),
-    _vm.isIdSet
-      ? _c(
+    _c(
+      "div",
+      { staticClass: "rounded bg-gray-100 border shadow-inner p-4" },
+      [
+        _c(
           "div",
-          { staticClass: "rounded bg-gray-100 border shadow-inner p-4" },
+          { staticClass: "grid grid-flow-col md:grid-rows-1 grid-rows-4" },
           [
-            _c("chart", {
+            _c("div", [
+              _c("label", [_vm._v("Base Currency ID")]),
+              _vm._v(" "),
+              _c("input", {
+                directives: [
+                  {
+                    name: "model",
+                    rawName: "v-model",
+                    value: _vm.filter.base_currency_id,
+                    expression: "filter.base_currency_id"
+                  }
+                ],
+                staticClass: "form-input rounded-md shadow-sm mt-1 mb-3 block",
+                attrs: { type: "number" },
+                domProps: { value: _vm.filter.base_currency_id },
+                on: {
+                  input: function($event) {
+                    if ($event.target.composing) {
+                      return
+                    }
+                    _vm.$set(
+                      _vm.filter,
+                      "base_currency_id",
+                      $event.target.value
+                    )
+                  }
+                }
+              })
+            ]),
+            _vm._v(" "),
+            _c("div", [
+              _c(
+                "button",
+                {
+                  staticClass:
+                    "bg-green-100 form-input rounded-md shadow-sm mt-7 ",
+                  on: {
+                    click: function($event) {
+                      return _vm.getData()
+                    }
+                  }
+                },
+                [_vm._v("Search\n                ")]
+              )
+            ]),
+            _vm._v(" "),
+            _c("div", [
+              _c(
+                "button",
+                {
+                  staticClass:
+                    "bg-red-100 form-input rounded-md shadow-sm mt-7 ",
+                  on: { click: _vm.onClickBaseIdClear }
+                },
+                [_vm._v("Clear\n                ")]
+              )
+            ])
+          ]
+        ),
+        _vm._v(" "),
+        _vm.isBaseCurrencyData
+          ? _c("chart", {
               attrs: { chartdata: _vm.chartData, options: _vm.chartOptions }
             })
-          ],
-          1
-        )
-      : _vm._e(),
+          : _vm._e()
+      ],
+      1
+    ),
     _vm._v(" "),
     _c("div", { staticClass: "rounded bg-gray-100 border shadow-inner p-4" }, [
       _c(

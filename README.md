@@ -5,9 +5,9 @@
 
 Laravel 8 test app providing currency rates.
 
-![Example](https://i.imgur.com/nvtmsYi.png)
+![Example](https://i.imgur.com/fLuLCkW.png)
 
-![Example](https://i.imgur.com/ZqMkfeD.png)
+![Example](https://i.imgur.com/HrXSrsI.png)
 
 ## Used packages
 
@@ -43,6 +43,9 @@ Used for authorization:
 
 Methods:
 1. Get currency resources: Get /api/v1/currencies
+
+[Example](https://i.imgur.com/52uny5v.png)
+
 2. Get currency resource: Get /api/v1/currencies/{id}
 
 ![Example](https://i.imgur.com/x99tM7f.png)

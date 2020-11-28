@@ -23,7 +23,7 @@ class CurrencyResource extends ApiResource
             'num_code' => $this->num_code,
             'char_code' => $this->char_code,
             'nominal' => $this->nominal,
-            'value' => $this->value,
+            'value' => ($this->value_by_base)?round($this->value_by_base, 2):$this->value,
             'avg_value' => round($this->avg_value,2),
             'min_value' => round($this->min_value, 2),
             'max_value' => round($this->max_value, 2),
