@@ -268,8 +268,6 @@ export default {
                     data: data
                 }]
             };
-
-            console.log(this.chartData);
         },
         setPagination() {
             let start = this.meta.current_page - this.pageCount,
