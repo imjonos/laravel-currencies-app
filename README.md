@@ -9,7 +9,7 @@ Laravel 8 test app providing currency rates.
 
 ![Example](https://i.imgur.com/ZqMkfeD.png)
 
-##Used packages
+## Used packages
 
 Laravel Passport, DomCrawler, Guzzle
 
