@@ -32,7 +32,7 @@ Laravel Passport, DomCrawler, Guzzle
 2. Import currencies: php artisan currencies:import
 3. Login url: /login
 
-##API
+## API
 
 Based on https://jsonapi.org. 
 
